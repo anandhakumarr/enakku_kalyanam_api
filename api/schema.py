@@ -5,6 +5,8 @@ from api.validation import *
 from graphene import relay, ObjectType
 from django.db.models import Q
 import datetime
+from graphql_jwt.decorators import login_required, staff_member_required
+
 
 
 def get_wrapper_details(data_wrapper, qs, page, size, history=None):
@@ -66,6 +68,7 @@ class CreateHobbyCategory(graphene.Mutation):
     class Arguments:
         title = graphene.String()
 
+    @staff_member_required
     def mutate(self, info, title):
 
         # Validation
@@ -87,6 +90,7 @@ class ApiQuery(graphene.ObjectType):
                 size=graphene.Int(),
                 page=graphene.Int())
 
+    @login_required
     def resolve_hobby_category(self, info, title=None, size=100, page=1, **kwargs):
         qs = HobbyCategory.objects.all()
         query_filter = {}

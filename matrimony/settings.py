@@ -48,8 +48,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',    
     'api.middleware.LogRestMiddleware',
 ]
 
@@ -117,8 +116,12 @@ USE_L10N = True
 
 USE_TZ = True
 
+
 GRAPHENE = {
     'SCHEMA': 'matrimony.schema.schema',
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
 }
 
 AUTHENTICATION_BACKENDS = [
