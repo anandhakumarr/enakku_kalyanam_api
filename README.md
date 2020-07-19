@@ -1,29 +1,26 @@
-# README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+## Executing Web API
+Follow the below steps to execute in your local
 
-### What is this repository for? ###
+1. `pip install -r requirements.txt`
+2. `python manage.py migrate`
+3. `python manage.py runserver`
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+Executing tests
+1. `pytest` or `python manage.py test --settings=matrimony.settings_test`
 
-### How do I get set up? ###
+To get Code Coverage details in detail
+1. `coverage erase`
+2. `coverage run manage.py test --settings-matrimony.settings_test`
+3. `coverage report`
+4. `coverage html`
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
 
-### Contribution guidelines ###
+python manage.py test api.tests --settings=matrimony.settings_test
 
-* Writing tests
-* Code review
-* Other guidelines
 
-### Who do I talk to? ###
+TokenAuth is used to authenticate the User with its username and password to obtain the JSON Web token.
 
-* Repo owner or admin
-* Other community or team contact
+VerifyToken to confirm that the token is valid, passing it as an argument.
+
+RefreshToken to obtain a new token within the renewed expiration time for non-expired tokens, if they are enabled to expire. Using it is outside the scope of this tutorial.
