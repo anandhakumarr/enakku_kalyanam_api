@@ -1,49 +1,11 @@
 import graphene
 from graphene_django import DjangoObjectType
-from api.models import *
-from api.validation import *
-from graphene import relay, ObjectType
+from graphql_jwt.decorators import login_required, staff_member_required
+from graphene import ObjectType
+from api.models import HobbyCategory
+from api.schemas.validation import Validation
 from django.db.models import Q
 import datetime
-from graphql_jwt.decorators import login_required, staff_member_required
-
-
-
-def get_wrapper_details(data_wrapper, qs, page, size, history=None):
-    if page <= 1:
-        skip = 0
-        current_page = 1
-    else:
-        skip = (page - 1) * size
-        current_page = page
-
-    total_elements = qs.count()
-    total_pages = int(total_elements / size) 
-    total_pages += 1 if (total_elements % size) > 0 else 0
-
-    
-    if total_pages > current_page:
-        has_next_page = True
-    else:
-        has_next_page = False
-
-    if skip:
-        qs = qs[skip:]
-    if size:
-        qs = qs[:size]
-
-    number_of_elements = qs.count()
-
-    keyword_args = {
-        'results': qs,
-        'total_elements': total_elements,
-        'size': size,
-        'total_pages': total_pages,
-        'current_page': current_page,
-        'has_next_page': has_next_page,
-        'number_of_elements': number_of_elements,         
-    }
-    return data_wrapper(**keyword_args)
 
 
 class HobbyCategoryType(DjangoObjectType):
@@ -78,11 +40,12 @@ class CreateHobbyCategory(graphene.Mutation):
         return CreateHobbyCategory(hobby_category=category)
 
 
-class ApiMutation(graphene.ObjectType):
+
+class HobbyMutation(graphene.ObjectType):
     create_hobby_category = CreateHobbyCategory.Field()
 
 
-class ApiQuery(graphene.ObjectType):
+class HobbyQuery(graphene.ObjectType):
 
     hobby_category = graphene.Field(
                 HobbyCategoryWrapper,
@@ -99,4 +62,3 @@ class ApiQuery(graphene.ObjectType):
         if query_filter:
             qs = qs.filter(**query_filter)
         return get_wrapper_details(HobbyCategoryWrapper, qs, page, size) 
-

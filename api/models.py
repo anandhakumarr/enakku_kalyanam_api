@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Q
-
+from django.contrib.auth.models import User
 
 class HobbyCategory(models.Model):
     title = models.CharField(max_length=255)
@@ -10,9 +10,217 @@ class HobbyCategory(models.Model):
     def __str__(self):
         return self.title
 
+class Hobby(models.Model):
+    title = models.CharField(max_length=255)
+    hobby_category = models.ForeignKey(HobbyCategory, on_delete=models.PROTECT)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class UserHobby(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    hobby = models.ForeignKey(Hobby, on_delete=models.PROTECT)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class UserFamily(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user_type = models.CharField(max_length=20)
+    name = models.CharField(max_length=40)
+    is_employed = models.BooleanField(max_length=40)
+    occupation = models.CharField(max_length=40)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class Membership(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    membership = models.CharField(max_length=40)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+def user_directory_path(instance, filename):
+    return 'uploads/user_{0}/photos/{1}'.format(instance.user.id, filename)
+
+def user_horoscope_path(instance, filename):
+    return 'uploads/user_{0}/horoscope/{1}'.format(instance.user.id, filename)
+
+class UserPhoto(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    photo = models.FileField(upload_to=user_directory_path)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=40)
+    status = models.CharField(max_length=40)
+    link = models.CharField(max_length=40)    
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class Raasi(models.Model):
+    title = models.CharField(max_length=255)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class EducationCategory(models.Model):
+    title = models.CharField(max_length=255)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+class OccupationCategory(models.Model):
+    title = models.CharField(max_length=255)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+class Star(models.Model):
+    title = models.CharField(max_length=255)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class MotherTongue(models.Model):
+    title = models.CharField(max_length=255)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class Religion(models.Model):
+    title = models.CharField(max_length=255)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class Caste(models.Model):
+    title = models.CharField(max_length=255)
+    religion = models.ForeignKey(Religion, on_delete=models.PROTECT)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+class SubCaste(models.Model):
+    title = models.CharField(max_length=255)
+    religion = models.ForeignKey(Religion, on_delete=models.PROTECT)
+    caste = models.ForeignKey(Caste, on_delete=models.PROTECT)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+class PartnerPreference(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    age_from = models.IntegerField()
+    age_to = models.IntegerField()
+    height_from = models.DecimalField(max_digits=2,decimal_places=2)
+    height_to = models.DecimalField(max_digits=2,decimal_places=2)
+    physical_choices = [('Normal', 'Normal'), ('Physically Challenged', 'Physically Challenged')]
+    physical_status = models.CharField(choices=physical_choices, default='Normal', max_length=25)
+    bodytype_choices = [('Average', 'Average'), ('Athletic', 'Athletic'), ('Slim', 'Slim'), ('Heavy', 'Heavy')]
+    body_type = models.CharField(choices=bodytype_choices, default='Average', max_length=10)
+    eating_choices = [('Vegetarian', 'Vegetarian'), ('Non-Vegetarian', 'Non-Vegetarian'), ('Eggetarian', 'Eggetarian')]
+    eating_habits = models.CharField(choices=eating_choices, default='Vegetarian', max_length=20)
+    drinking_smoking_choices = [('No', 'No'), ('Yes', 'Yes'), ('Occasionally', 'Occasionally')]
+    drinking_habits = models.CharField(choices=drinking_smoking_choices, default='No', max_length=20)
+    smoking_habits = models.CharField(choices=drinking_smoking_choices, default='No', max_length=20)
+    mother_tongue = models.ForeignKey(MotherTongue, on_delete=models.PROTECT)
+    religion = models.ForeignKey(Religion, on_delete=models.PROTECT)
+    caste = models.ForeignKey(Caste, on_delete=models.PROTECT)
+    raasi = models.ForeignKey(Raasi, on_delete=models.PROTECT)
+    sub_caste = models.ForeignKey(SubCaste, on_delete=models.PROTECT)
+    star = models.ForeignKey(Star, on_delete=models.PROTECT)
+    highest_education = models.ForeignKey(EducationCategory, on_delete=models.PROTECT)
+    employment_choices = [
+        ('Private', 'Private'), 
+        ('Business', 'Business'), 
+        ('Not Working', 'Not Working'), 
+        ('Government/PSU', 'Government/PSU'), 
+        ('Defence', 'Defence'), 
+        ('Self Employed', 'Self Employed')
+    ]
+    employed_in = models.CharField(choices=employment_choices, default='Private', max_length=50)
+    occupation = models.ForeignKey(OccupationCategory, on_delete=models.PROTECT)
+    income_from = models.IntegerField()
+    income_to = models.IntegerField()
+    dosham = models.CharField(choices=[('Yes', 'Yes'), ('No', 'No'), ("Doesn't Mater", "Doesn't Mater")], default='No', max_length=20)
+    about_partner = models.TextField()
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+
+
+class UserProfile(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    profile_image = models.CharField(max_length=500)
+    gender = models.CharField(choices=[('Male', 'Male'), ('Female', 'Female')], default='Male', max_length=20)
+    about_me = models.TextField()
+    about = models.TextField()
+    about_family = models.TextField()
+    dob = models.DateTimeField()
+    mother_tongue = models.ForeignKey(MotherTongue, on_delete=models.PROTECT)
+    bodytype_choices = [('Average', 'Average'), ('Athletic', 'Athletic'), ('Slim', 'Slim'), ('Heavy', 'Heavy')]
+    body_type = models.CharField(choices=bodytype_choices, default='Average', max_length=20)
+    physical_choices = [('Normal', 'Normal'), ('Physically Challenged', 'Physically Challenged')]
+    physical_status = models.CharField(choices=physical_choices, default='Normal', max_length=25)
+    eating_choices = [('Vegetarian', 'Vegetarian'), ('Non-Vegetarian', 'Non-Vegetarian'), ('Eggetarian', 'Eggetarian')]
+    eating_habits = models.CharField(choices=eating_choices, default='Vegetarian', max_length=20)
+    drinking_smoking_choices = [('No', 'No'), ('Yes', 'Yes'), ('Occasionally', 'Occasionally')]
+    drinking_habits = models.CharField(choices=drinking_smoking_choices, default='No', max_length=20)
+    smoking_habits = models.CharField(choices=drinking_smoking_choices, default='No', max_length=20)
+    profile_created_by_choices = [('Self', 'Self'), ('Parent', 'Parent'), ('Sibling', 'Sibling'), ('Friend', 'Friend'), ('Relative', 'Relative')]
+    profile_created_by = models.CharField(choices=profile_created_by_choices, default='Self', max_length=20)
+    height = models.DecimalField(max_digits=2,decimal_places=2)
+    weight = models.DecimalField(max_digits=2,decimal_places=2)
+    country = models.CharField(max_length=50)
+    city = models.CharField(max_length=50)
+    state = models.CharField(max_length=50)
+    work_location = models.CharField(max_length=50)
+    native_location = models.CharField(max_length=50)
+    primary_phone = models.CharField(max_length=20)
+    secondary_phone = models.CharField(max_length=20)
+    gothram = models.CharField(max_length=20)
+    dosham = models.CharField(max_length=20)
+    zodiac = models.CharField(max_length=20)
+    religion = models.ForeignKey(Religion, on_delete=models.PROTECT)
+    caste = models.ForeignKey(Caste, on_delete=models.PROTECT)
+    sub_caste = models.ForeignKey(SubCaste, on_delete=models.PROTECT)
+    star = models.ForeignKey(Star, on_delete=models.PROTECT)
+    horoscope = models.FileField(upload_to=user_horoscope_path)
+    highest_education = models.ForeignKey(EducationCategory, on_delete=models.PROTECT)
+    college = models.CharField(max_length=50)
+    employment_choices = [
+        ('Private', 'Private'), 
+        ('Business', 'Business'), 
+        ('Not Working', 'Not Working'), 
+        ('Government/PSU', 'Government/PSU'), 
+        ('Defence', 'Defence'), 
+        ('Self Employed', 'Self Employed')
+    ]
+    employed_in = models.CharField(choices=employment_choices, default='Private', max_length=50)
+    occupation = models.ForeignKey(OccupationCategory, on_delete=models.PROTECT)
+    salary_per_month = models.DecimalField(max_digits=15, decimal_places=2)
+    salary_currency_type = models.CharField(max_length=10)
+
+    email_verified = models.BooleanField(default=False)
+    phone_verified = models.BooleanField(default=False)
+    completed_basic_details = models.BooleanField(default=False)
+    completed_relegious_details = models.BooleanField(default=False)    
+    completed_professional_details = models.BooleanField(default=False)
+    completed_family_details = models.BooleanField(default=False)
+    completed_profile_details = models.BooleanField(default=False)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
 
 class RequestLogger(models.Model):
-    user = models.CharField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     method = models.CharField(max_length=10)
     request_path = models.CharField(max_length=255)
     body = models.TextField()
