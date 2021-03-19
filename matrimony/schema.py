@@ -1,9 +1,8 @@
 import graphene
 import graphql_jwt
 from api.schemas.user import UserQuery, UserMutation
-from api.schemas.hobby import HobbyQuery
 
-class Query(HobbyQuery, UserQuery, graphene.ObjectType):
+class Query(UserQuery, graphene.ObjectType):
     pass
 
 class Mutation(UserMutation, graphene.ObjectType,):
