@@ -125,10 +125,11 @@ GRAPHENE = {
 }
 
 AUTHENTICATION_BACKENDS = [
+    'matrimony.backends.DeviceBackend',
     'graphql_jwt.backends.JSONWebTokenBackend',
     'django.contrib.auth.backends.ModelBackend',
     'matrimony.backends.EmailBackend',
-    'matrimony.backends.PhoneBackend',    
+    'matrimony.backends.PhoneBackend',  
 ]
 
 # Static files (CSS, JavaScript, Images)

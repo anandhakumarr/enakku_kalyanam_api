@@ -43,7 +43,19 @@ class Register(graphene.Mutation):
 
         UserProfile.objects.create(user=user, primary_phone=phone)
 
+        # Send Reset Token to Email
+
         return Register(user=user)
+
+
+# class ChangePassword(graphene.Mutation):
+#    """ Mutation to change password a user """
+
+# class ForgotPassword(graphene.Mutation):
+#    """ Mutation to change password a user """
+
+# class ResetPassword(graphene.Mutation):
+#    """ Mutation to change password a user """
 
 
 class UserMutation(graphene.ObjectType):

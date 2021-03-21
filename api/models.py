@@ -159,10 +159,19 @@ class PartnerPreference(models.Model):
     updated_ts = models.DateTimeField(auto_now=True)
 
 
+class UserDevice(models.Model):
+    device_id = models.CharField(null=True, blank=True, max_length=50)
+    device_token = models.CharField(null=True, blank=True, max_length=200)    
+    device_type = models.CharField(null=True, blank=True, default="mobile", max_length=50)
+    device_os = models.CharField(null=True, blank=True, max_length=50)
+    device_version = models.CharField(null=True, blank=True, max_length=50)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_image = models.CharField(max_length=500,null=True, blank=True)
+    device = models.ForeignKey(UserDevice, on_delete=models.CASCADE,null=True, blank=True)
     gender = models.CharField(choices=[('Male', 'Male'), ('Female', 'Female')], default='Male', max_length=20)
     about_me = models.TextField(null=True, blank=True)
     about = models.TextField(null=True, blank=True)
