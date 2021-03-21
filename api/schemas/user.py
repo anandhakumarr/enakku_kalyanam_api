@@ -3,9 +3,23 @@ import graphene
 from graphene_django import DjangoObjectType
 from api.models import UserProfile
 
+
+class ProfileType(DjangoObjectType):
+    class Meta:
+        model = UserProfile
+
+
 class UserType(DjangoObjectType):
     class Meta:
         model = get_user_model()
+        fields = ("first_name", "last_name", "email")
+
+    profile = graphene.List(ProfileType)
+
+    @staticmethod
+    def resolve_profile(root, info, **kwargs):
+        profile = UserProfile.objects.filter(user=root)
+        return profile
 
 
 class Register(graphene.Mutation):
