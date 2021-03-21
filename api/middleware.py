@@ -33,7 +33,6 @@ class LogRestMiddleware(MiddlewareMixin):
                 
             else:
                 user = request.user
-                print(user)
 
             method = str(getattr(request, 'method', '')).upper()
             request_path = str(getattr(request, 'path', ''))
