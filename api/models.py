@@ -1,6 +1,10 @@
 from django.db import models
 from django.db.models import Q
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+User._meta.get_field('email')._unique = True
 
 class HobbyCategory(models.Model):
     title = models.CharField(max_length=255)
@@ -157,14 +161,14 @@ class PartnerPreference(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    profile_image = models.CharField(max_length=500)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    profile_image = models.CharField(max_length=500,null=True, blank=True)
     gender = models.CharField(choices=[('Male', 'Male'), ('Female', 'Female')], default='Male', max_length=20)
-    about_me = models.TextField()
-    about = models.TextField()
-    about_family = models.TextField()
-    dob = models.DateTimeField()
-    mother_tongue = models.ForeignKey(MotherTongue, on_delete=models.PROTECT)
+    about_me = models.TextField(null=True, blank=True)
+    about = models.TextField(null=True, blank=True)
+    about_family = models.TextField(null=True, blank=True)
+    dob = models.DateTimeField(null=True, blank=True)
+    mother_tongue = models.ForeignKey(MotherTongue, on_delete=models.PROTECT,null=True, blank=True)
     bodytype_choices = [('Average', 'Average'), ('Athletic', 'Athletic'), ('Slim', 'Slim'), ('Heavy', 'Heavy')]
     body_type = models.CharField(choices=bodytype_choices, default='Average', max_length=20)
     physical_choices = [('Normal', 'Normal'), ('Physically Challenged', 'Physically Challenged')]
@@ -176,25 +180,25 @@ class UserProfile(models.Model):
     smoking_habits = models.CharField(choices=drinking_smoking_choices, default='No', max_length=20)
     profile_created_by_choices = [('Self', 'Self'), ('Parent', 'Parent'), ('Sibling', 'Sibling'), ('Friend', 'Friend'), ('Relative', 'Relative')]
     profile_created_by = models.CharField(choices=profile_created_by_choices, default='Self', max_length=20)
-    height = models.DecimalField(max_digits=2,decimal_places=2)
-    weight = models.DecimalField(max_digits=2,decimal_places=2)
-    country = models.CharField(max_length=50)
-    city = models.CharField(max_length=50)
-    state = models.CharField(max_length=50)
-    work_location = models.CharField(max_length=50)
-    native_location = models.CharField(max_length=50)
-    primary_phone = models.CharField(max_length=20)
-    secondary_phone = models.CharField(max_length=20)
-    gothram = models.CharField(max_length=20)
-    dosham = models.CharField(max_length=20)
-    zodiac = models.CharField(max_length=20)
-    religion = models.ForeignKey(Religion, on_delete=models.PROTECT)
-    caste = models.ForeignKey(Caste, on_delete=models.PROTECT)
-    sub_caste = models.ForeignKey(SubCaste, on_delete=models.PROTECT)
-    star = models.ForeignKey(Star, on_delete=models.PROTECT)
-    horoscope = models.FileField(upload_to=user_horoscope_path)
-    highest_education = models.ForeignKey(EducationCategory, on_delete=models.PROTECT)
-    college = models.CharField(max_length=50)
+    height = models.DecimalField(max_digits=2,decimal_places=2,null=True, blank=True)
+    weight = models.DecimalField(max_digits=2,decimal_places=2,null=True, blank=True)
+    country = models.CharField(max_length=50,null=True, blank=True)
+    city = models.CharField(max_length=50,null=True, blank=True)
+    state = models.CharField(max_length=50,null=True, blank=True)
+    work_location = models.CharField(max_length=50,null=True, blank=True)
+    native_location = models.CharField(max_length=50,null=True, blank=True)
+    primary_phone = models.CharField(max_length=20,null=True, blank=True, unique=True)
+    secondary_phone = models.CharField(max_length=20,null=True, blank=True)
+    gothram = models.CharField(max_length=20,null=True, blank=True)
+    dosham = models.CharField(max_length=20,null=True, blank=True)
+    zodiac = models.CharField(max_length=20,null=True, blank=True)
+    religion = models.ForeignKey(Religion, on_delete=models.PROTECT,null=True, blank=True)
+    caste = models.ForeignKey(Caste, on_delete=models.PROTECT,null=True, blank=True)
+    sub_caste = models.ForeignKey(SubCaste, on_delete=models.PROTECT,null=True, blank=True)
+    star = models.ForeignKey(Star, on_delete=models.PROTECT,null=True, blank=True)
+    horoscope = models.FileField(upload_to=user_horoscope_path,null=True, blank=True)
+    highest_education = models.ForeignKey(EducationCategory, on_delete=models.PROTECT,null=True, blank=True)
+    college = models.CharField(max_length=50,null=True, blank=True)
     employment_choices = [
         ('Private', 'Private'), 
         ('Business', 'Business'), 
@@ -204,9 +208,9 @@ class UserProfile(models.Model):
         ('Self Employed', 'Self Employed')
     ]
     employed_in = models.CharField(choices=employment_choices, default='Private', max_length=50)
-    occupation = models.ForeignKey(OccupationCategory, on_delete=models.PROTECT)
-    salary_per_month = models.DecimalField(max_digits=15, decimal_places=2)
-    salary_currency_type = models.CharField(max_length=10)
+    occupation = models.ForeignKey(OccupationCategory, on_delete=models.PROTECT,null=True, blank=True)
+    salary_per_month = models.DecimalField(max_digits=15, decimal_places=2,null=True, blank=True)
+    salary_currency_type = models.CharField(max_length=10,null=True, blank=True)
 
     email_verified = models.BooleanField(default=False)
     phone_verified = models.BooleanField(default=False)
