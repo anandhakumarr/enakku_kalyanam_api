@@ -4,6 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
 
 User._meta.get_field('email')._unique = True
 
@@ -66,6 +67,7 @@ def user_horoscope_path(instance, filename):
 class UserPhoto(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     photo = models.FileField(upload_to=user_directory_path)
+    verified = models.BooleanField(default=False)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
@@ -192,11 +194,10 @@ class PartnerPreference(models.Model):
     updated_ts = models.DateTimeField(auto_now=True)
 
 
-    def __str__(self):
-        return self.user.first_name 
 
 class UserDevice(models.Model):
-    device_id = models.CharField(null=True, blank=True, max_length=50)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True, blank=True)
+    device_id = models.CharField(null=True, blank=True, max_length=50, unique=True)
     device_token = models.CharField(null=True, blank=True, max_length=200)    
     device_type = models.CharField(null=True, blank=True, default="mobile", max_length=50)
     device_os = models.CharField(null=True, blank=True, max_length=50)
@@ -205,14 +206,14 @@ class UserDevice(models.Model):
     updated_ts = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.device_id
+        return self.user.first_name + ' | ' +self.device_id
 
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    user_membership = models.ForeignKey(Membership, on_delete=models.CASCADE,null=True, blank=True)
-    profile_image = models.CharField(max_length=500,null=True, blank=True)
-    device = models.ForeignKey(UserDevice, on_delete=models.CASCADE,null=True, blank=True)
+    is_editor = models.BooleanField(default=False)
+    membership = models.ForeignKey(Membership, on_delete=models.CASCADE,null=True, blank=True)
+    profile_image = models.CharField(max_length=500,null=True, blank=True)    
     gender = models.CharField(choices=[('Male', 'Male'), ('Female', 'Female')], default='Male', max_length=20)
     about_me = models.TextField(null=True, blank=True)
     about = models.TextField(null=True, blank=True)
@@ -264,6 +265,7 @@ class UserProfile(models.Model):
 
     email_verified = models.BooleanField(default=False)
     phone_verified = models.BooleanField(default=False)
+    user_verified = models.BooleanField(default=False)
     completed_basic_details = models.BooleanField(default=False)
     completed_relegious_details = models.BooleanField(default=False)    
     completed_professional_details = models.BooleanField(default=False)
@@ -283,7 +285,7 @@ class RequestLogger(models.Model):
     created_ts = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.user
+        return self.user.first_name
 
 
 @receiver(pre_save, sender=Membership)

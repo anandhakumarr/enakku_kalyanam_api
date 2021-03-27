@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 import graphene
 from graphene_django import DjangoObjectType
-from api.models import UserProfile
-
+from api.models import UserProfile, UserDevice, Membership
+from api.schemas.validation import Validation
 
 class ProfileType(DjangoObjectType):
     class Meta:
@@ -32,31 +32,54 @@ class Register(graphene.Mutation):
         email = graphene.String(required=True)
         phone = graphene.String(required=True)
         password = graphene.String(required=True)
+        device_id = graphene.String()
+        device_token = graphene.String()
+        device_type = graphene.String()
+        device_os = graphene.String()
+        device_version = graphene.String()
 
-    def mutate(self, info, name, email, phone, password):
+    def mutate(self, info, name, email, phone, password, **kwargs):
+
+        Validation.check_is_empty(name, 'Name')
+        Validation.check_is_empty(password, 'Password')
+
+        name_slice = name.split(" ")
+        first_name = name_slice[0].title()
+        last_name = ' '.join(name_slice[1:]) if len(name_slice) > 1 else ''
+        name = name+'|'+phone
+
         user = get_user_model()(
+            first_name=first_name,
+            last_name=last_name,
             username=name,
             email=email,
         )
         user.set_password(password)
         user.save()
 
-        UserProfile.objects.create(user=user, primary_phone=phone)
+        membership = Membership.objects.get(membership='Free')
 
-        # Send Reset Token to Email
+
+        device_id = kwargs.get('device_id', "")
+        device_token = kwargs.get('device_token', "")
+        device_type = kwargs.get('device_type', "")
+        device_os = kwargs.get('device_os', "")
+        device_version = kwargs.get('device_version', "")
+
+        if device_id and device_type: 
+            UserDevice.objects.create(user=user,device_id=device_id, device_token=device_token, 
+                device_type=device_type, device_os=device_os, device_version=device_version)
+
+        UserProfile.objects.create(user=user, primary_phone=phone, membership=membership)
 
         return Register(user=user)
 
 
-# class ChangePassword(graphene.Mutation):
-#    """ Mutation to change password a user """
-
-# class ForgotPassword(graphene.Mutation):
-#    """ Mutation to change password a user """
-
-# class ResetPassword(graphene.Mutation):
-#    """ Mutation to change password a user """
-
+# Verfify Email
+# Verfify Mobile 
+# ResetPassword
+# ForgotPassword 
+# ChangePassword
 
 class UserMutation(graphene.ObjectType):
     register = Register.Field()
