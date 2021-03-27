@@ -4,6 +4,10 @@ from api.models import *
 
 class Validation:
 
+	def check_user_login(user):
+		if user.is_anonymous:
+			raise GraphQLError("Account Not logged in!'")
+
 	def check_staff_role(user):
 		if not user.is_staff:
 			raise GraphQLError("Operation Not Allowed, Please contact admin.")

@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
 import graphene
 from graphene_django import DjangoObjectType
-from api.models import UserProfile, UserDevice, Membership
+from graphene import ObjectType
+from api.models import UserProfile, UserDevice, Membership, Notification
 from api.schemas.validation import Validation
+from api.schemas.descriptions import *
+from api.schemas.utils import *
 
 class ProfileType(DjangoObjectType):
     class Meta:
@@ -20,6 +23,23 @@ class UserType(DjangoObjectType):
     def resolve_profile(root, info, **kwargs):
         profile = UserProfile.objects.filter(user=root)
         return profile
+
+class NotificaitonObject(DjangoObjectType):
+    class Meta:
+        model = Notification
+        exclude = ("user",)
+
+class NotificationWrapper(ObjectType):
+    results = graphene.List(NotificaitonObject)
+    total_elements = graphene.Int()
+    number_of_elements = graphene.Int()
+    size = graphene.Int()
+    total_pages = graphene.Int()
+    current_page = graphene.Int()
+    has_next_page = graphene.Boolean()
+
+    class Meta:
+        description = desc_wrapper
 
 
 class Register(graphene.Mutation):
@@ -89,7 +109,18 @@ class UserQuery(graphene.ObjectType):
 
     def resolve_me(self, info):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception('Not logged in!')
-
+        Validation.check_user_login(user)
         return user        
+
+    """ Notification List """
+
+    notification = graphene.Field(
+                NotificationWrapper,
+                size=graphene.Int(description=desc_size),
+                page=graphene.Int(description=desc_page))
+
+    def resolve_notification(self, info, size=100, page=1, **kwargs):
+        Validation.check_user_login(info.context.user)
+        qs = Notification.objects.filter(user=info.context.user).order_by('-updated_ts')
+        return get_wrapper_details(NotificationWrapper, qs, page, size) 
+

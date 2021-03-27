@@ -84,7 +84,7 @@ class Notification(models.Model):
     updated_ts = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user.first_name + '|' + self.notification_type
+        return self.user.first_name 
 
 class Raasi(models.Model):
     title = models.CharField(max_length=255, unique=True)
