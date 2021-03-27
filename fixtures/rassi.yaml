@@ -1,0 +1,4 @@
+- model: api.raasi
+  pk: 1
+  fields:
+    title: Meenam

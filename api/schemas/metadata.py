@@ -49,6 +49,11 @@ class SubCasteType(DjangoObjectType):
     class Meta:
         model = SubCaste
 
+class MembershipType(DjangoObjectType):
+    class Meta:
+        model = Membership
+        fields = ("features", "membership", "offer_percent", "membership_price")
+
 class MetaQuery(graphene.ObjectType):
 
     hobby_category = graphene.List(HobbyCategoryType)
@@ -101,3 +106,7 @@ class MetaQuery(graphene.ObjectType):
         qs = SubCaste.objects.all()
         return qs          
 
+    membership = graphene.List(MembershipType)
+    def resolve_membership(self, info, **kwargs):
+        qs = Membership.objects.all()
+        return qs     

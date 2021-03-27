@@ -1,0 +1,4 @@
+- model: api.occupationcategory
+  pk: 1
+  fields:
+    title: Software

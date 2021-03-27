@@ -1,0 +1,4 @@
+- model: api.star
+  pk: 1
+  fields:
+    title: Revathi

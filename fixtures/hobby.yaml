@@ -1,0 +1,10 @@
+- model: api.hobbycategory
+  pk: 1
+  fields:
+    title: Music
+
+- model: api.hobby
+  pk: 1
+  fields:
+    title: Music
+    hobby_category: 1

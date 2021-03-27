@@ -1,0 +1,23 @@
+- model: api.religion
+  pk: 1
+  fields:
+    title: Hindu
+
+- model: api.caste
+  pk: 1
+  fields:
+    religion: 1
+    title: Naidu
+
+- model: api.subcaste
+  pk: 1
+  fields:
+    religion: 1
+    caste: 1
+    title: Kamma Naidu
+
+
+- model: api.religion
+  pk: 2
+  fields:
+    title: Muslim

@@ -1,0 +1,4 @@
+- model: api.educationcategory
+  pk: 1
+  fields:
+    title: Under Graduate

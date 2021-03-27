@@ -1,13 +1,14 @@
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import User, Group
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 User._meta.get_field('email')._unique = True
 
 class HobbyCategory(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
@@ -15,7 +16,7 @@ class HobbyCategory(models.Model):
         return self.title
 
 class Hobby(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     hobby_category = models.ForeignKey(HobbyCategory, on_delete=models.PROTECT)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
@@ -30,23 +31,31 @@ class UserHobby(models.Model):
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.user.first_name + '|' + self.hobby.title
 
 class UserFamily(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
-    user_type = models.CharField(max_length=20)
-    name = models.CharField(max_length=40)
-    is_employed = models.BooleanField(max_length=40)
-    occupation = models.CharField(max_length=40)
+    user_type = models.CharField(choices=[('Mother', 'Mother'), ('Father', 'Father'), ('Sister', 'Sister'), ('Brother', 'Brother')], default='Mother', max_length=20)
+    name = models.CharField(max_length=40,null=True, blank=True)
+    is_employed = models.BooleanField(max_length=40,null=True, blank=True)
+    occupation = models.CharField(max_length=40,null=True, blank=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.user.first_name + '|' + self.user_type
 
 class Membership(models.Model):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    membership = models.CharField(max_length=40)
+    membership = models.CharField(choices=[('Silver', 'Silver'), ('Gold', 'Gold'), ('Diamond', 'Diamond'), ('Free', 'Free')], default='Free', max_length=20)
+    offer_percent =models.IntegerField(default=25)
+    membership_price = models.IntegerField(default=1000)
+    features = models.TextField(null=True, blank=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.membership
 
 def user_directory_path(instance, filename):
     return 'uploads/user_{0}/photos/{1}'.format(instance.user.id, filename)
@@ -60,64 +69,88 @@ class UserPhoto(models.Model):
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.user.first_name
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
-    message = models.TextField()
-    notification_type = models.CharField(max_length=40)
-    status = models.CharField(max_length=40)
-    link = models.CharField(max_length=40)    
+    message = models.TextField(null=True, blank=True)
+    notification_type = models.CharField(max_length=40,null=True, blank=True)
+    status = models.CharField(max_length=40,null=True, blank=True)
+    link = models.CharField(max_length=40,null=True, blank=True)    
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.user.first_name + '|' + self.notification_type
 
 class Raasi(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
 
 
 class EducationCategory(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title    
 
 class OccupationCategory(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title    
 
 class Star(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title    
 
 class MotherTongue(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title    
 
 class Religion(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title    
 
 class Caste(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     religion = models.ForeignKey(Religion, on_delete=models.PROTECT)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title    
+
 class SubCaste(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     religion = models.ForeignKey(Religion, on_delete=models.PROTECT)
     caste = models.ForeignKey(Caste, on_delete=models.PROTECT)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title    
 
 class PartnerPreference(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -159,6 +192,9 @@ class PartnerPreference(models.Model):
     updated_ts = models.DateTimeField(auto_now=True)
 
 
+    def __str__(self):
+        return self.user.first_name 
+
 class UserDevice(models.Model):
     device_id = models.CharField(null=True, blank=True, max_length=50)
     device_token = models.CharField(null=True, blank=True, max_length=200)    
@@ -168,8 +204,13 @@ class UserDevice(models.Model):
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.device_id
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_membership = models.ForeignKey(Membership, on_delete=models.CASCADE,null=True, blank=True)
     profile_image = models.CharField(max_length=500,null=True, blank=True)
     device = models.ForeignKey(UserDevice, on_delete=models.CASCADE,null=True, blank=True)
     gender = models.CharField(choices=[('Male', 'Male'), ('Female', 'Female')], default='Male', max_length=20)
@@ -231,6 +272,8 @@ class UserProfile(models.Model):
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.user.first_name 
 
 class RequestLogger(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -241,3 +284,21 @@ class RequestLogger(models.Model):
 
     def __str__(self):
         return self.user
+
+
+@receiver(pre_save, sender=Membership)
+@receiver(pre_save, sender=HobbyCategory)
+@receiver(pre_save, sender=Hobby)
+@receiver(pre_save, sender=Raasi)
+@receiver(pre_save, sender=EducationCategory)
+@receiver(pre_save, sender=OccupationCategory)
+@receiver(pre_save, sender=Star)
+@receiver(pre_save, sender=MotherTongue)
+@receiver(pre_save, sender=Religion)
+@receiver(pre_save, sender=Caste)
+@receiver(pre_save, sender=SubCaste)
+def create_membership(sender, instance, *args, **kwargs):
+    if kwargs['raw']:
+        instance.updated_ts = timezone.now()
+        instance.created_ts = timezone.now()
+

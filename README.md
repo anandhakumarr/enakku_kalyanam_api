@@ -6,6 +6,10 @@ Follow the below steps to execute in your local
 2. `python manage.py migrate`
 3. `python manage.py runserver`
 
+Load Fixtures 
+
+`python manage.py loaddata fixtures/*`
+
 Executing tests
 1. `pytest` or `python manage.py test --settings=matrimony.settings_test`
 
