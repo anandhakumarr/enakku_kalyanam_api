@@ -1,27 +1,6 @@
 - model: api.membership
   pk: 1
   fields:
-    membership: Free
-    offer_percent: 100
-    features: ''
-
-- model: api.membership
-  pk: 2
-  fields:
     membership: Gold
-    offer_percent: 100
-    features: ''
-
-- model: api.membership
-  pk: 3
-  fields:
-    membership: Diamond
-    offer_percent: 100
-    features: ''
-
-- model: api.membership
-  pk: 4
-  fields:
-    membership: Silver
-    offer_percent: 100
-    features: ''
+    offer_percent: 90
+    features: 'View unlimited mobile numbers | View unlimited horoscopes | Send unlimited chat'
