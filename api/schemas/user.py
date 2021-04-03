@@ -1,21 +1,25 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 import graphene
 from graphene_django import DjangoObjectType
 from graphene import ObjectType
-from api.models import UserProfile, UserDevice, Membership, Notification
+from api.models import UserProfile, UserDevice, Membership, Notification, MessageRoom
 from api.schemas.validation import Validation
 from api.schemas.descriptions import *
 from api.schemas.utils import *
+from graphql import GraphQLError
+from django.db.models import Q
 
 class ProfileType(DjangoObjectType):
     class Meta:
         model = UserProfile
 
+class RoomType(ObjectType):
+    room_id = graphene.String()
 
 class UserType(DjangoObjectType):
     class Meta:
-        model = get_user_model()
-        fields = ("first_name", "last_name", "email")
+        model = User
+        fields = ("first_name", "last_name", "email", "username")
 
     profile = graphene.List(ProfileType)
 
@@ -66,31 +70,33 @@ class Register(graphene.Mutation):
         name_slice = name.split(" ")
         first_name = name_slice[0].title()
         last_name = ' '.join(name_slice[1:]) if len(name_slice) > 1 else ''
-        name = name+'|'+phone
-
-        user = get_user_model()(
-            first_name=first_name,
-            last_name=last_name,
-            username=name,
-            email=email,
-        )
-        user.set_password(password)
-        user.save()
-
-        membership = Membership.objects.get(membership='Free')
-
-
         device_id = kwargs.get('device_id', "")
         device_token = kwargs.get('device_token', "")
         device_type = kwargs.get('device_type', "")
         device_os = kwargs.get('device_os', "")
         device_version = kwargs.get('device_version', "")
 
+
+        profile = UserProfile.objects.filter(primary_phone=phone).first()
+        if profile:
+            raise GraphQLError("Mobile already registered, Please Login!")
+
+        device = UserDevice.objects.filter(device_id=device_id).first()
+        if device:
+            raise GraphQLError("Device already registered, Please Login!")
+
+        try:
+            user = User(first_name=first_name, last_name=last_name, email=email)
+            user.set_password(password)
+            user.save()
+        except:
+            raise GraphQLError("Email already registered, Please Login!")
+
         if device_id and device_type: 
             UserDevice.objects.create(user=user,device_id=device_id, device_token=device_token, 
                 device_type=device_type, device_os=device_os, device_version=device_version)
 
-        UserProfile.objects.create(user=user, primary_phone=phone, membership=membership)
+        UserProfile.objects.create(user=user, primary_phone=phone)
 
         return Register(user=user)
 
@@ -105,12 +111,42 @@ class UserMutation(graphene.ObjectType):
     register = Register.Field()
 
 class UserQuery(graphene.ObjectType):
+    """ Me """
     me = graphene.Field(UserType)
 
     def resolve_me(self, info):
         user = info.context.user
         Validation.check_user_login(user)
         return user        
+
+    """ Create/Get Chat room """
+    get_chat_room = graphene.Field(RoomType,
+                            user1=graphene.String(required=True),
+                            user2=graphene.String(required=True),
+                        )
+
+    def resolve_get_chat_room(self, info, user1, user2, **kwargs):
+        user = info.context.user
+        # Validation.check_user_login(user)
+
+        user_count = User.objects.filter(username__in=[user1, user2]).count()
+        if user_count != 2 or user1 == user2:
+            raise GraphQLError("User matching Failed, Please contact admin!")
+
+        room_res = MessageRoom.objects.filter(Q(user1__username=user1,user2__username=user2) | Q(user1__username=user2,user2__username=user1)).first()
+
+        if room_res:
+            room_id = room_res.id
+        else:
+            room_name = user1 + '|' + user2
+            user1 = User.objects.get(username=user1)
+            user2 = User.objects.get(username=user2)
+            room = MessageRoom(user1=user1, user2=user2, room_name=room_name)
+            room.save()
+            room_id = room.id
+
+        return {'room_id': room_id}
+
 
     """ Notification List """
 

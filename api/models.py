@@ -5,6 +5,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
+import uuid
 
 User._meta.get_field('email')._unique = True
 
@@ -210,7 +211,7 @@ class UserDevice(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE,null=True, blank=True)
     is_editor = models.BooleanField(default=False)
     membership = models.ForeignKey(Membership, on_delete=models.CASCADE,null=True, blank=True)
     profile_image = models.CharField(max_length=500,null=True, blank=True)    
@@ -287,6 +288,25 @@ class RequestLogger(models.Model):
     def __str__(self):
         return self.user.first_name
 
+class MessageRoom(models.Model):
+    id = models.UUIDField(primary_key=True,null=False, default=uuid.uuid4, editable=False)
+    user1 = models.ForeignKey(User, on_delete=models.PROTECT, related_name='user1')
+    user2 = models.ForeignKey(User, on_delete=models.PROTECT, related_name='user2')
+    room_name = models.CharField(max_length=100)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.room_name
+
+class Message(models.Model):
+    message_room = models.ForeignKey(MessageRoom, on_delete=models.PROTECT)
+    content = models.TextField(null=False, blank=False)
+    created_ts = models.DateTimeField(auto_now_add=True)
+    updated_ts = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.content
 
 @receiver(pre_save, sender=Membership)
 @receiver(pre_save, sender=HobbyCategory)
@@ -304,3 +324,8 @@ def create_membership(sender, instance, *args, **kwargs):
         instance.updated_ts = timezone.now()
         instance.created_ts = timezone.now()
 
+
+def random_username(sender, instance, **kwargs):
+    if not instance.username:
+        instance.username = uuid.uuid4().hex[:30]
+models.signals.pre_save.connect(random_username, sender=User)

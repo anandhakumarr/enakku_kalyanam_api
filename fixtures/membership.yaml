@@ -1,6 +1,6 @@
 - model: api.membership
   pk: 1
   fields:
-    membership: Gold
+    membership: Premium
     offer_percent: 90
     features: 'View unlimited mobile numbers | View unlimited horoscopes | Send unlimited chat'

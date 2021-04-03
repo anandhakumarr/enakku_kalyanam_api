@@ -32,6 +32,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+    'chat',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,7 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',    
-    'api.middleware.LogRestMiddleware',
+    # 'api.middleware.LogRestMiddleware',
 ]
 
 ROOT_URLCONF = 'matrimony.urls'
@@ -74,6 +76,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'matrimony.wsgi.application'
+ASGI_APPLICATION = "matrimony.asgi.application"
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
@@ -122,6 +134,7 @@ USE_TZ = True
 
 GRAPHENE = {
     'SCHEMA': 'matrimony.schema.schema',
+    'GRAPHIQL_HEADER_EDITOR_ENABLED': True,
     'MIDDLEWARE': [
         'graphql_jwt.middleware.JSONWebTokenMiddleware',
     ],
@@ -129,10 +142,10 @@ GRAPHENE = {
 
 AUTHENTICATION_BACKENDS = [
     'matrimony.backends.DeviceBackend',
-    'graphql_jwt.backends.JSONWebTokenBackend',
-    'django.contrib.auth.backends.ModelBackend',
     'matrimony.backends.EmailBackend',
-    'matrimony.backends.PhoneBackend',  
+    'matrimony.backends.PhoneBackend', 
+    'graphql_jwt.backends.JSONWebTokenBackend',    
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Static files (CSS, JavaScript, Images)
@@ -155,3 +168,4 @@ GRAPHQL_JWT = {
     'JWT_EXPIRATION_DELTA': timedelta(minutes=5),
     'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
 }
+

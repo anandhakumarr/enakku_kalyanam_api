@@ -46,7 +46,10 @@ class LogRestMiddleware(MiddlewareMixin):
                         post_params[k] = v
                     else:
                         post_params[k] = v[0]
-            RequestLogger.objects.create(user=user, method=method, request_path=request_path, body=json.dumps(post_params))
+            try:
+                RequestLogger.objects.create(user=user, method=method, request_path=request_path, body=json.dumps(post_params))
+            except Exception as e:
+                print(e)
             # print(user, method, request_path, post_params)
             # _logger.warning("req: (%s) [%s] %s %s", user, method, request_path, request.body)
         except Exception as e:
