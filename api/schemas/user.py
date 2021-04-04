@@ -8,6 +8,7 @@ from api.schemas.descriptions import *
 from api.schemas.utils import *
 from graphql import GraphQLError
 from django.db.models import Q
+from django.contrib.auth import authenticate
 
 class ProfileType(DjangoObjectType):
     class Meta:
@@ -105,10 +106,38 @@ class Register(graphene.Mutation):
 # Verfify Mobile 
 # ResetPassword
 # ForgotPassword 
-# ChangePassword
+
+class ChangePassword(graphene.Mutation):
+    """ Mutation to ChangePassword """
+
+    message = graphene.String()
+    status = graphene.String()
+
+    class Arguments:
+        oldpassword = graphene.String(required=True)
+        newpassword = graphene.String(required=True)
+
+    def mutate(self, info, oldpassword, newpassword, **kwargs):
+
+        user = info.context.user
+        Validation.check_user_login(user)
+
+        Validation.check_is_empty(oldpassword, 'Old Password')
+        Validation.check_is_empty(newpassword, 'New Password')
+
+        user_auth = authenticate(username=user.email, password=oldpassword)
+        if user_auth is None:
+            raise GraphQLError("Incorrect Old Password")
+
+        user.set_password(newpassword)
+        user.save()
+
+        return ChangePassword(message='Password Changed!', status='success')
+
 
 class UserMutation(graphene.ObjectType):
     register = Register.Field()
+    change_password = ChangePassword.Field()
 
 class UserQuery(graphene.ObjectType):
     """ Me """
@@ -127,7 +156,7 @@ class UserQuery(graphene.ObjectType):
 
     def resolve_get_chat_room(self, info, user1, user2, **kwargs):
         user = info.context.user
-        # Validation.check_user_login(user)
+        Validation.check_user_login(user)
 
         user_count = User.objects.filter(username__in=[user1, user2]).count()
         if user_count != 2 or user1 == user2:
