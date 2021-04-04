@@ -1,5 +1,9 @@
 from graphql import GraphQLError
 import datetime
+from random import randint
+from django.template.loader import render_to_string, get_template
+from django.core.mail import EmailMessage
+from django.conf import settings
 
 def get_wrapper_details(data_wrapper, qs, page, size):
     
@@ -70,3 +74,34 @@ def get_logdate_info(start_logdate, end_logdate):
         else:
             raise GraphQLError("StartDate should be <= EndDate")
     return (key, value)
+
+def random_token(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)
+
+
+def sendmail(context, email, otp, name):
+    if context == 'forgot_password':
+        ctx = {
+            'name': name,
+            'otp': otp,
+            'appname': settings.APP_NAME
+        }
+        message = get_template('forgot_password.html').render(ctx)
+        subject = settings.APP_NAME + ' | ' + 'Reset Password'
+
+    if context == 'verify_email':
+        ctx = {
+            'name': name,
+            'otp': otp,
+            'appname': settings.APP_NAME
+        }
+        message = get_template('verify_email.html').render(ctx)
+        subject = settings.APP_NAME + ' | ' + 'Email Verification'
+
+    msg = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+    msg.content_subtype = "html"
+    msg.send()
+
+    print("Mail successfully sent")

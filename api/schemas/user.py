@@ -9,6 +9,7 @@ from api.schemas.utils import *
 from graphql import GraphQLError
 from django.db.models import Q
 from django.contrib.auth import authenticate
+import _thread
 
 class ProfileType(DjangoObjectType):
     class Meta:
@@ -102,10 +103,172 @@ class Register(graphene.Mutation):
         return Register(user=user)
 
 
-# Verfify Email
-# Verfify Mobile 
-# ResetPassword
-# ForgotPassword 
+class ResendEmailVerification(graphene.Mutation):
+    """ Mutation to EmailVerification """
+
+    message = graphene.String()
+    status = graphene.String()
+
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        Validation.check_user_login(user)
+
+        token = random_token(6)
+
+        profile = UserProfile.objects.get(user=user)
+        profile.email_otp = token
+        profile.save()
+
+        _thread.start_new_thread( sendmail, ('verify_email',user.email, token, user.first_name) )
+
+        return ResendEmailVerification(status='success', message='OTP successfully sent!')
+
+class ResendMobileVerification(graphene.Mutation):
+    """ Mutation to ResendMobileVerification """
+
+    message = graphene.String()
+    status = graphene.String()
+    otp = graphene.String()
+
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        Validation.check_user_login(user)
+
+        token = random_token(6)
+
+        profile = UserProfile.objects.get(user=user)
+        profile.mobile_otp = token
+        profile.save()
+
+        return ResendMobileVerification(status='success', message='OTP successfully sent!', otp=token)
+
+class ForgotPassword(graphene.Mutation):
+    """ Mutation to ForgotPassword """
+
+    message = graphene.String()
+    status = graphene.String()
+
+    class Arguments:
+        email = graphene.String(required=True)
+
+    def mutate(self, info, email, **kwargs):
+        Validation.check_is_empty(email, 'Email')
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            raise GraphQLError("Email not registered")
+
+        token = random_token(6)
+
+        profile = UserProfile.objects.get(user=user)
+        profile.otp = token
+        profile.save()
+
+        _thread.start_new_thread( sendmail, ('forgot_password', email, token, user.first_name) )
+
+        return ForgotPassword(status='success', message='OTP successfully sent!')
+
+
+class VerifyOTP(graphene.Mutation):
+    """ Mutation to VerifyOTP """
+
+    message = graphene.String()
+    status = graphene.String()
+
+    class Arguments:
+        otp = graphene.String(required=True)
+        email = graphene.String(required=True)
+
+    def mutate(self, info, otp, email, **kwargs):
+        Validation.check_is_empty(email, 'Email')
+        Validation.check_is_empty(otp, 'OTP')
+        user = User.objects.get(email=email)
+        if not user:
+            raise GraphQLError("Email not registered")
+
+        profile = UserProfile.objects.get(user=user)
+        if profile.otp != otp:
+            raise GraphQLError("Incorrect OTP, Please try again!")
+        profile.otp = None
+        profile.save()
+
+        return VerifyOTP(status='success', message='OTP successfully verified!')
+
+
+class ResetPassword(graphene.Mutation):
+    """ Mutation to ResetPassword """
+
+    message = graphene.String()
+    status = graphene.String()
+
+    class Arguments:
+        email = graphene.String(required=True)
+        newpassword = graphene.String(required=True)
+
+    def mutate(self, info, email, newpassword, **kwargs):
+        Validation.check_is_empty(email, 'Email')
+        Validation.check_is_empty(newpassword, 'New Password')
+        user = User.objects.get(email=email)
+        if not user:
+            raise GraphQLError("Email not registered")
+
+        profile = UserProfile.objects.get(user=user)
+        if profile.otp != None:
+            raise GraphQLError("Please verify OTP!")
+
+        user.set_password(newpassword)
+        user.save()
+
+        return ResetPassword(status='success', message='Password successfully updated!')
+
+
+
+class VerifyEmailOTP(graphene.Mutation):
+    """ Mutation to VerifyEmailOTP """
+
+    message = graphene.String()
+    status = graphene.String()
+
+    class Arguments:
+        otp = graphene.String(required=True)
+
+    def mutate(self, info, otp, **kwargs):
+        Validation.check_is_empty(otp, 'OTP')
+        user = info.context.user
+        Validation.check_user_login(user)
+
+        profile = UserProfile.objects.get(user=user)
+        if profile.email_otp != otp:
+            raise GraphQLError("Incorrect OTP, Please try again!")
+        profile.email_otp = None
+        profile.email_verified = True
+        profile.save()
+
+        return VerifyEmailOTP(status='success', message='Email successfully verified!')
+
+class VerifyMobileOTP(graphene.Mutation):
+    """ Mutation to VerifyMobileOTP """
+
+    message = graphene.String()
+    status = graphene.String()
+
+    class Arguments:
+        otp = graphene.String(required=True)
+
+    def mutate(self, info, otp, **kwargs):
+        Validation.check_is_empty(otp, 'OTP')
+        user = info.context.user
+        Validation.check_user_login(user)
+
+        profile = UserProfile.objects.get(user=user)
+        if profile.mobile_otp != otp:
+            raise GraphQLError("Incorrect OTP, Please try again!")
+        profile.mobile_otp = None
+        profile.phone_verified = True
+        profile.save()
+
+        return VerifyMobileOTP(status='success', message='Mobile successfully verified!')
+
 
 class ChangePassword(graphene.Mutation):
     """ Mutation to ChangePassword """
@@ -138,6 +301,13 @@ class ChangePassword(graphene.Mutation):
 class UserMutation(graphene.ObjectType):
     register = Register.Field()
     change_password = ChangePassword.Field()
+    reset_password = ResetPassword.Field()
+    verify_otp = VerifyOTP.Field()
+    forgot_password = ForgotPassword.Field()
+    resend_email_verification = ResendEmailVerification.Field()
+    resend_mobile_verification = ResendMobileVerification.Field()
+    verify_email_otp = VerifyEmailOTP.Field()
+    verify_mobile_otp = VerifyMobileOTP.Field()
 
 class UserQuery(graphene.ObjectType):
     """ Me """

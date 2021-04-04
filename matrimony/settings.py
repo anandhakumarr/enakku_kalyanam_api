@@ -62,7 +62,7 @@ FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -153,15 +153,14 @@ AUTHENTICATION_BACKENDS = [
 
 STATIC_URL = '/static/'
 
-
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'rkanandhakumar@gmail.com'
 EMAIL_HOST_PASSWORD = 'Diveinn!@#'
 EMAIL_PORT = 587
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+APP_NAME = 'Enakku Kalyanam'
 
 GRAPHQL_JWT = {
     'JWT_VERIFY_EXPIRATION': True,

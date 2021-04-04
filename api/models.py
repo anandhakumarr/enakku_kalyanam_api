@@ -263,8 +263,10 @@ class UserProfile(models.Model):
     occupation = models.ForeignKey(OccupationCategory, on_delete=models.PROTECT,null=True, blank=True)
     salary_per_month = models.DecimalField(max_digits=15, decimal_places=2,null=True, blank=True)
     salary_currency_type = models.CharField(max_length=10,null=True, blank=True)
-
+    otp = models.CharField(max_length=6,null=True, blank=True)
     email_verified = models.BooleanField(default=False)
+    email_otp = models.CharField(max_length=6,null=True, blank=True)
+    mobile_otp = models.CharField(max_length=6,null=True, blank=True)
     phone_verified = models.BooleanField(default=False)
     user_verified = models.BooleanField(default=False)
     completed_basic_details = models.BooleanField(default=False)
