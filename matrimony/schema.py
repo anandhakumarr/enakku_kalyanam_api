@@ -1,6 +1,7 @@
 import graphene
 import graphql_jwt
 from api.schemas.user import UserQuery, UserMutation
+from api.schemas.profile import ProfileQuery, ProfileMutation
 from api.schemas.metadata import MetaQuery
 from django.contrib.auth import get_user_model
 from graphene_django import DjangoObjectType
@@ -18,10 +19,10 @@ class ObtainJSONWebToken(graphql_jwt.ObtainJSONWebToken):
     def resolve(cls, root, info, **kwargs):
         return cls(user=info.context.user)
 
-class Query(MetaQuery, UserQuery, graphene.ObjectType):
+class Query(MetaQuery, UserQuery, ProfileQuery, graphene.ObjectType):
     pass
 
-class Mutation(UserMutation, graphene.ObjectType,):
+class Mutation(UserMutation, ProfileMutation, graphene.ObjectType,):
     token_auth = ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
