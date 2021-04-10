@@ -147,6 +147,15 @@ class UpdateProfile(graphene.Mutation):
 			instance.employed_in = kwargs.get('employed_in', instance.employed_in)
 			instance.occupation = occupation
 			instance.dosham = kwargs.get('dosham', instance.dosham)
+
+			if instance.gender and instance.dob and instance.profile_created_by and instance.city:
+				instance.completed_basic_details = True
+			if instance.mother_tongue and instance.height and instance.weight and instance.body_type:
+				instance.completed_profile_details = True
+			if instance.religion and instance.caste and instance.raasi and instance.sub_caste and instance.star:
+				instance.completed_relegious_details = True
+			if instance.highest_education and instance.employed_in and instance.college:
+				instance.completed_professional_details = True
 			instance.save()
 
 			status='success'
@@ -291,17 +300,17 @@ class UpdateFamily(graphene.Mutation):
 	        	is_employed=is_employed, occupation=occupation)
         	status = 'success'
         	message = 'Family details updated!'
+
+        	instance = UserProfile.objects.filter(user=user).first()
+        	instance.completed_family_details = True
+        	instance.save()
+
         except Exception as e:
         	status = 'error'
         	message = e
 
         return UpdateFamily(status=status, message=message)
 
-    # completed_basic_details = models.BooleanField(default=False)
-    # completed_relegious_details = models.BooleanField(default=False)    
-    # completed_professional_details = models.BooleanField(default=False)
-    # completed_family_details = models.BooleanField(default=False)
-    # completed_profile_details = models.BooleanField(default=False)
 
 class ProfileMutation(graphene.ObjectType):
     update_profile = UpdateProfile.Field()
