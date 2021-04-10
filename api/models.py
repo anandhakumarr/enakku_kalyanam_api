@@ -157,10 +157,10 @@ class SubCaste(models.Model):
 
 class PartnerPreference(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
-    age_from = models.IntegerField()
-    age_to = models.IntegerField()
-    height_from = models.DecimalField(max_digits=2,decimal_places=2)
-    height_to = models.DecimalField(max_digits=2,decimal_places=2)
+    age_from = models.IntegerField(null=True, blank=True)
+    age_to = models.IntegerField(null=True, blank=True)
+    height_from = models.DecimalField(max_digits=2,decimal_places=2,null=True, blank=True)
+    height_to = models.DecimalField(max_digits=2,decimal_places=2,null=True, blank=True)
     physical_choices = [('Normal', 'Normal'), ('Physically Challenged', 'Physically Challenged')]
     physical_status = models.CharField(choices=physical_choices, default='Normal', max_length=25)
     bodytype_choices = [('Average', 'Average'), ('Athletic', 'Athletic'), ('Slim', 'Slim'), ('Heavy', 'Heavy')]
@@ -170,13 +170,13 @@ class PartnerPreference(models.Model):
     drinking_smoking_choices = [('No', 'No'), ('Yes', 'Yes'), ('Occasionally', 'Occasionally')]
     drinking_habits = models.CharField(choices=drinking_smoking_choices, default='No', max_length=20)
     smoking_habits = models.CharField(choices=drinking_smoking_choices, default='No', max_length=20)
-    mother_tongue = models.ForeignKey(MotherTongue, on_delete=models.PROTECT)
-    religion = models.ForeignKey(Religion, on_delete=models.PROTECT)
-    caste = models.ForeignKey(Caste, on_delete=models.PROTECT)
-    raasi = models.ForeignKey(Raasi, on_delete=models.PROTECT)
-    sub_caste = models.ForeignKey(SubCaste, on_delete=models.PROTECT)
-    star = models.ForeignKey(Star, on_delete=models.PROTECT)
-    highest_education = models.ForeignKey(EducationCategory, on_delete=models.PROTECT)
+    mother_tongue = models.ForeignKey(MotherTongue, on_delete=models.PROTECT,null=True, blank=True)
+    religion = models.ForeignKey(Religion, on_delete=models.PROTECT,null=True, blank=True)
+    caste = models.ForeignKey(Caste, on_delete=models.PROTECT,null=True, blank=True)
+    raasi = models.ForeignKey(Raasi, on_delete=models.PROTECT,null=True, blank=True)
+    sub_caste = models.ForeignKey(SubCaste, on_delete=models.PROTECT,null=True, blank=True)
+    star = models.ForeignKey(Star, on_delete=models.PROTECT,null=True, blank=True)
+    highest_education = models.ForeignKey(EducationCategory, on_delete=models.PROTECT,null=True, blank=True)
     employment_choices = [
         ('Private', 'Private'), 
         ('Business', 'Business'), 
@@ -186,11 +186,11 @@ class PartnerPreference(models.Model):
         ('Self Employed', 'Self Employed')
     ]
     employed_in = models.CharField(choices=employment_choices, default='Private', max_length=50)
-    occupation = models.ForeignKey(OccupationCategory, on_delete=models.PROTECT)
-    income_from = models.IntegerField()
-    income_to = models.IntegerField()
+    occupation = models.ForeignKey(OccupationCategory, on_delete=models.PROTECT,null=True, blank=True)
+    income_from = models.IntegerField(null=True, blank=True)
+    income_to = models.IntegerField(null=True, blank=True)
     dosham = models.CharField(choices=[('Yes', 'Yes'), ('No', 'No'), ("Doesn't Mater", "Doesn't Mater")], default='No', max_length=20)
-    about_partner = models.TextField()
+    about_partner = models.TextField(null=True, blank=True)
     created_ts = models.DateTimeField(auto_now_add=True)
     updated_ts = models.DateTimeField(auto_now=True)
 

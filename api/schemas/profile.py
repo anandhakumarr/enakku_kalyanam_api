@@ -64,26 +64,108 @@ class UpdateProfile(graphene.Mutation):
         return UpdateProfile(status='success', message='Profile details updated!')
 
 class UpdatePartner(graphene.Mutation):
-    """ Mutation to UpdatePartner """
+	""" Mutation to UpdatePartner """
 
-    message = graphene.String()
-    status = graphene.String()
+	message = graphene.String()
+	status = graphene.String()
 
-    class Arguments:
-	    user_type = graphene.String(required=True)
-	    name = graphene.String(required=True)
-	    is_employed = graphene.Boolean(required=True)
-	    occupation = graphene.String(required=True)
+	class Arguments:
+		age_from = graphene.Int()
+		age_to = graphene.Int()
+		height_from = graphene.Decimal()
+		height_to = graphene.Decimal()
+		physical_status = graphene.String()
+		body_type = graphene.String()
+		eating_habits = graphene.String()	    
+		drinking_habits = graphene.String()
+		smoking_habits = graphene.String()
+		mother_tongue = graphene.String()
+		religion = graphene.String()
+		caste = graphene.String()
+		raasi = graphene.String()
+		sub_caste = graphene.String()
+		star = graphene.String()
+		highest_education = graphene.String()
+		employed_in = graphene.String()
+		occupation =  graphene.String()
+		income_from = graphene.Int()
+		income_to = graphene.Int()
+		dosham = graphene.String()
+		about_partner = graphene.String()
 
-    def mutate(self, info, **kwargs):
-        user = info.context.user
-        Validation.check_user_login(user)
+	def mutate(self, info, **kwargs):
+		user = info.context.user
+		Validation.check_user_login(user)
 
-        profile = UserProfile.objects.get(user=user)
-        profile.email_otp = token
-        profile.save()
+		try:
+			instance = PartnerPreference.objects.filter(user=user).first()
+			if not instance:
+				instance = PartnerPreference.objects.create(user=user)
 
-        return UpdatePartner(status='success', message='Partner details updated!')
+			mother_tongue = kwargs.get('mother_tongue', instance.mother_tongue)
+			if mother_tongue:
+				mother_tongue = Validation.validate_mother_tongue(mother_tongue)
+
+			religion = kwargs.get('religion', instance.religion)
+			if religion:
+				religion = Validation.validate_religion(religion)
+
+			caste = kwargs.get('caste', instance.caste)
+			if caste:
+				caste = Validation.validate_caste(caste)
+
+			raasi = kwargs.get('raasi', instance.raasi)
+			if raasi:
+				raasi = Validation.validate_raasi(raasi)
+
+			sub_caste = kwargs.get('sub_caste', instance.sub_caste)
+			if sub_caste:
+				sub_caste = Validation.validate_sub_caste(sub_caste)
+
+			star = kwargs.get('star', instance.star)
+			if star:
+				star = Validation.validate_star(star)
+
+			highest_education = kwargs.get('highest_education', instance.highest_education)
+			if highest_education:
+				highest_education = Validation.validate_highest_education(highest_education)
+
+			occupation = kwargs.get('occupation', instance.occupation)
+			if occupation:
+				occupation = Validation.validate_occupation(occupation)
+												
+			instance.age_from = kwargs.get('age_from', instance.age_from)
+			instance.age_to = kwargs.get('age_to', instance.age_to)
+			instance.height_from = kwargs.get('height_from', instance.height_from)
+			instance.height_to = kwargs.get('height_to', instance.height_to)
+			instance.physical_status = kwargs.get('physical_status', instance.physical_status)
+			instance.body_type = kwargs.get('body_type', instance.body_type)
+			instance.eating_habits = kwargs.get('eating_habits', instance.eating_habits)
+			instance.drinking_habits = kwargs.get('drinking_habits', instance.drinking_habits)
+			instance.smoking_habits = kwargs.get('smoking_habits', instance.smoking_habits)
+			instance.mother_tongue = mother_tongue
+			instance.religion = religion
+			instance.caste = caste
+			instance.raasi = raasi
+			instance.sub_caste = sub_caste
+			instance.star = star
+			instance.highest_education = highest_education
+			instance.employed_in = kwargs.get('employed_in', instance.employed_in)
+			instance.occupation = occupation
+			instance.income_from = kwargs.get('income_from', instance.income_from)
+			instance.income_to = kwargs.get('income_to', instance.income_to)
+			instance.dosham = kwargs.get('dosham', instance.dosham)
+			instance.about_partner = kwargs.get('about_partner', instance.about_partner)
+			instance.save()
+
+			status='success'
+			message = 'Partner details updated!'
+		except Exception as e:
+			status = 'error'
+			message = e
+
+		return UpdatePartner(status=status, message=message)
+
 
 class UpdateFamily(graphene.Mutation):
     """ Mutation to UpdateFamily """
@@ -103,10 +185,23 @@ class UpdateFamily(graphene.Mutation):
         Validation.check_user_login(user)
         Validation.validate_usertype(user_type)
 
-        UserFamily.objects.create(user=user, user_type=user_type, name=name,
-        	is_employed=is_employed, occupation=occupation)
+        try:
+        	family = UserFamily.objects.filter(user=user, user_type=user_type).first()
+        	if family:
+        		family.name = name
+        		family.is_employed = is_employed
+        		family.occupation = occupation
+        		family.save()
+        	else:
+	        	UserFamily.objects.create(user=user, user_type=user_type, name=name,
+	        	is_employed=is_employed, occupation=occupation)
+        	status = 'success'
+        	message = 'Family details updated!'
+        except Exception as e:
+        	status = 'error'
+        	message = e
 
-        return UpdateFamily(status='success', message='Family details updated!')
+        return UpdateFamily(status=status, message=message)
 
 
 class ProfileMutation(graphene.ObjectType):

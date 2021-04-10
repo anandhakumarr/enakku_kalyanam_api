@@ -113,15 +113,19 @@ class ResendEmailVerification(graphene.Mutation):
         user = info.context.user
         Validation.check_user_login(user)
 
-        token = random_token(6)
+        try:
+            token = random_token(6)
+            profile = UserProfile.objects.get(user=user)
+            profile.email_otp = token
+            profile.save()
+            _thread.start_new_thread( sendmail, ('verify_email',user.email, token, user.first_name) )
+            status = 'success'
+            message='OTP successfully sent!'
+        except Exception as e:
+            message = e
+            status = 'error'
 
-        profile = UserProfile.objects.get(user=user)
-        profile.email_otp = token
-        profile.save()
-
-        _thread.start_new_thread( sendmail, ('verify_email',user.email, token, user.first_name) )
-
-        return ResendEmailVerification(status='success', message='OTP successfully sent!')
+        return ResendEmailVerification(status=status, message=message)
 
 class ResendMobileVerification(graphene.Mutation):
     """ Mutation to ResendMobileVerification """
@@ -134,13 +138,18 @@ class ResendMobileVerification(graphene.Mutation):
         user = info.context.user
         Validation.check_user_login(user)
 
-        token = random_token(6)
+        try:
+            token = random_token(6)
+            profile = UserProfile.objects.get(user=user)
+            profile.mobile_otp = token
+            profile.save()
+            status = 'success'
+            message='OTP successfully sent!'            
+        except Exception as e:
+            message = e
+            status = 'error'
 
-        profile = UserProfile.objects.get(user=user)
-        profile.mobile_otp = token
-        profile.save()
-
-        return ResendMobileVerification(status='success', message='OTP successfully sent!', otp=token)
+        return ResendMobileVerification(status=status, message=message, otp=token)
 
 class ForgotPassword(graphene.Mutation):
     """ Mutation to ForgotPassword """
@@ -158,15 +167,19 @@ class ForgotPassword(graphene.Mutation):
         if not user:
             raise GraphQLError("Email not registered")
 
-        token = random_token(6)
+        try:
+            token = random_token(6)
+            profile = UserProfile.objects.get(user=user)
+            profile.otp = token
+            profile.save()
+            _thread.start_new_thread( sendmail, ('forgot_password', email, token, user.first_name) )
+            status = 'success'
+            message='OTP successfully sent!' 
+        except Exception as e:
+            message = e
+            status = 'error'
 
-        profile = UserProfile.objects.get(user=user)
-        profile.otp = token
-        profile.save()
-
-        _thread.start_new_thread( sendmail, ('forgot_password', email, token, user.first_name) )
-
-        return ForgotPassword(status='success', message='OTP successfully sent!')
+        return ForgotPassword(status=status, message=message)
 
 
 class VerifyOTP(graphene.Mutation):
