@@ -41,27 +41,121 @@ class UserProfileType(DjangoObjectType):
 		return partner
 
 class UpdateProfile(graphene.Mutation):
-    """ Mutation to UpdateProfile """
+	""" Mutation to UpdateProfile """
 
-    message = graphene.String()
-    status = graphene.String()
+	message = graphene.String()
+	status = graphene.String()
 
-    class Arguments:
-	    user_type = graphene.String(required=True)
-	    name = graphene.String(required=True)
-	    is_employed = graphene.Boolean(required=True)
-	    occupation = graphene.String(required=True)
+	class Arguments:
+		gender = graphene.String()
+		about_me = graphene.String()
+		about_family = graphene.String()
+		dob = graphene.DateTime()
+		profile_created_by = graphene.String()
+		country = graphene.String()
+		city = graphene.String()
+		state = graphene.String()
+		work_location = graphene.String()
+		native_location = graphene.String()
+		gothram = graphene.String()
+		college = graphene.String()
+		height = graphene.Decimal()
+		weight = graphene.Decimal()
+		physical_status = graphene.String()
+		body_type = graphene.String()
+		eating_habits = graphene.String()	    
+		drinking_habits = graphene.String()
+		smoking_habits = graphene.String()
+		mother_tongue = graphene.String()
+		religion = graphene.String()
+		caste = graphene.String()
+		raasi = graphene.String()
+		sub_caste = graphene.String()
+		star = graphene.String()
+		highest_education = graphene.String()
+		employed_in = graphene.String()
+		occupation =  graphene.String()
+		dosham = graphene.String()
 
+	def mutate(self, info, **kwargs):
+		user = info.context.user
+		Validation.check_user_login(user)
 
-    def mutate(self, info, **kwargs):
-        user = info.context.user
-        Validation.check_user_login(user)
+		try:
+			instance = UserProfile.objects.filter(user=user).first()
+			if not instance:
+				instance = UserProfile.objects.create(user=user)
 
-        profile = UserProfile.objects.get(user=user)
-        profile.email_otp = token
-        profile.save()
+			mother_tongue = kwargs.get('mother_tongue', instance.mother_tongue)
+			if mother_tongue:
+				mother_tongue = Validation.validate_mother_tongue(mother_tongue)
 
-        return UpdateProfile(status='success', message='Profile details updated!')
+			religion = kwargs.get('religion', instance.religion)
+			if religion:
+				religion = Validation.validate_religion(religion)
+
+			caste = kwargs.get('caste', instance.caste)
+			if caste:
+				caste = Validation.validate_caste(caste)
+
+			raasi = kwargs.get('raasi', instance.raasi)
+			if raasi:
+				raasi = Validation.validate_raasi(raasi)
+
+			sub_caste = kwargs.get('sub_caste', instance.sub_caste)
+			if sub_caste:
+				sub_caste = Validation.validate_sub_caste(sub_caste)
+
+			star = kwargs.get('star', instance.star)
+			if star:
+				star = Validation.validate_star(star)
+
+			highest_education = kwargs.get('highest_education', instance.highest_education)
+			if highest_education:
+				highest_education = Validation.validate_highest_education(highest_education)
+
+			occupation = kwargs.get('occupation', instance.occupation)
+			if occupation:
+				occupation = Validation.validate_occupation(occupation)
+
+			instance.gender = kwargs.get('gender', instance.gender)
+			instance.dob = kwargs.get('dob', instance.dob)
+			instance.about_me = kwargs.get('about_me', instance.about_me)
+			instance.about_family = kwargs.get('about_family', instance.about_family)
+			instance.profile_created_by = kwargs.get('profile_created_by', instance.profile_created_by)
+			instance.country = kwargs.get('country', instance.country)
+			instance.city = kwargs.get('city', instance.city)
+			instance.state = kwargs.get('state', instance.state)
+			instance.work_location = kwargs.get('work_location', instance.work_location)
+			instance.native_location = kwargs.get('native_location', instance.native_location)
+			instance.gothram = kwargs.get('gothram', instance.gothram)
+			instance.college = kwargs.get('college', instance.college)
+			instance.height = kwargs.get('height', instance.height)
+			instance.weight = kwargs.get('weight', instance.weight)
+			instance.physical_status = kwargs.get('physical_status', instance.physical_status)
+			instance.body_type = kwargs.get('body_type', instance.body_type)
+			instance.eating_habits = kwargs.get('eating_habits', instance.eating_habits)
+			instance.drinking_habits = kwargs.get('drinking_habits', instance.drinking_habits)
+			instance.smoking_habits = kwargs.get('smoking_habits', instance.smoking_habits)
+			instance.mother_tongue = mother_tongue
+			instance.religion = religion
+			instance.caste = caste
+			instance.raasi = raasi
+			instance.sub_caste = sub_caste
+			instance.star = star
+			instance.highest_education = highest_education
+			instance.employed_in = kwargs.get('employed_in', instance.employed_in)
+			instance.occupation = occupation
+			instance.dosham = kwargs.get('dosham', instance.dosham)
+			instance.save()
+
+			status='success'
+			message = 'Profile details updated!'
+		except Exception as e:
+			status = 'error'
+			message = e
+
+		return UpdateProfile(status=status, message=message)
 
 class UpdatePartner(graphene.Mutation):
 	""" Mutation to UpdatePartner """
@@ -133,7 +227,7 @@ class UpdatePartner(graphene.Mutation):
 			occupation = kwargs.get('occupation', instance.occupation)
 			if occupation:
 				occupation = Validation.validate_occupation(occupation)
-												
+	
 			instance.age_from = kwargs.get('age_from', instance.age_from)
 			instance.age_to = kwargs.get('age_to', instance.age_to)
 			instance.height_from = kwargs.get('height_from', instance.height_from)
@@ -203,6 +297,11 @@ class UpdateFamily(graphene.Mutation):
 
         return UpdateFamily(status=status, message=message)
 
+    # completed_basic_details = models.BooleanField(default=False)
+    # completed_relegious_details = models.BooleanField(default=False)    
+    # completed_professional_details = models.BooleanField(default=False)
+    # completed_family_details = models.BooleanField(default=False)
+    # completed_profile_details = models.BooleanField(default=False)
 
 class ProfileMutation(graphene.ObjectType):
     update_profile = UpdateProfile.Field()
